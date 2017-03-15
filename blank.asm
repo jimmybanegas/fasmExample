@@ -1,0 +1,88 @@
+; template for program using standard Win32 headers
+
+format PE CONSOLE 4.0
+entry start
+
+include 'win32a.inc'
+
+section '.data' data readable writeable
+
+   str_pause db  'p','a','u','s','e',0
+   msj1 db 'Ingrese numero 1: ' ,10,0
+   msj2 db 'Ingrese numero 2: ' ,10,0
+   resul db 'El resultado es: %d ' ,10,0
+   msj_mayor db 'El mayor es: %d ' ,10,0
+
+   input db '%d',0
+   a dd 0
+   b dd 0
+   c dd 0
+   mayor dd 0
+
+section '.code' code readable executable
+
+;Los parametros se pushean desde derecha a izquierda
+  start:
+	;Pedir numero uno
+	push msj1
+	call [printf]
+	add esp, 4
+	push a
+	push input
+	call [scanf]
+	add esp, 8
+
+	;Pedir numero dos
+	push msj2
+	call [printf]
+	add esp, 4
+	push b
+	push input
+	call [scanf]
+	add esp, 8
+
+       ;Sumar inputs
+	mov eax,[a]
+	add eax, [b]
+	mov [c], eax
+	push [c]
+	push resul
+	call [printf]
+	add esp, 8
+
+	mov eax,[a]
+	cmp eax,[b]
+	jg a_es_mayor
+	mov eax,[b]
+	mov [mayor], eax
+	jmp fin_if
+
+a_es_mayor:
+	mov eax,[a]
+	mov [mayor], eax
+
+fin_if:
+	push [mayor]
+	push msj_mayor
+	call [printf]
+	add esp,8
+
+       ;Finalizar el proceso
+	push str_pause
+	call [system]
+	add esp, 4
+	call [ExitProcess]
+
+section '.idata' import data readable writeable
+
+  library kernel,'KERNEL32.DLL',\
+	  ms ,'msvcrt.dll'
+
+  import kernel,\
+	 ExitProcess,'ExitProcess'
+
+  import ms,\
+	 printf,'printf',\
+	 cget ,'_getch',\
+	 system,'system',\
+	 scanf,'scanf'
